@@ -25,7 +25,7 @@ Create a `.env` file in the project root with the following values (or set equiv
 
 - `PORT` (default: `3000`)
 - `MONGODB_URI` (default: `mongodb://localhost:27017`)
-- `DB_NAME` (default: `medai_db`)
+- `DB_NAME` (default: `safedesk_db`)
 - `CLIENT_URL` (default: `http://localhost:5173`)
 - `NODE_ENV` (e.g. `development`, `production`)
 
@@ -34,7 +34,7 @@ Example `.env`:
 ```
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017
-DB_NAME=medai_db
+DB_NAME=safedesk_db
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 ```
