@@ -4,6 +4,12 @@ require('dotenv').config();
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const dbName = process.env.DB_NAME || 'safedesk_db';
 
+// Debug flag: when true, allows connecting with invalid/inspect-intercepted TLS certs.
+// WARNING: only use for local debugging. Never enable in production.
+const allowInvalidCerts = process.env.MONGO_TLS_ALLOW_INVALID_CERTS === 'true';
+// Optional server selection timeout (ms)
+const serverSelectionTimeoutMS = parseInt(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS, 10) || 10000;
+
 let client;
 let db;
 
@@ -13,21 +19,36 @@ const connectDB = async () => {
       return db;
     }
 
-    client = new MongoClient(uri, {
+    const clientOptions = {
       serverApi: {
         version: ServerApiVersion.v1,
         strict: true,
         deprecationErrors: true,
-      }
-    });
+      },
+      // Ensure TLS is used for Atlas / production URIs
+      tls: true,
+      // For debugging behind corporate interceptors set MONGO_TLS_ALLOW_INVALID_CERTS=true
+      tlsAllowInvalidCertificates: allowInvalidCerts,
+      serverSelectionTimeoutMS,
+    };
+
+    if (allowInvalidCerts) {
+      console.warn('⚠️  MONGO_TLS_ALLOW_INVALID_CERTS is enabled — skipping TLS cert validation (debug only)');
+    }
+
+    client = new MongoClient(uri, clientOptions);
 
     await client.connect();
-    db = client.db(dbName);
+    db = client.db("safe_desk");
 
     console.log('✅ Successfully connected to MongoDB!');
     return db;
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
+    // print nested cause if present (useful for TLS/OpenSSL errors)
+    if (error.cause) console.error('Cause:', error.cause);
+    // don't exit here to let calling code handle process lifecycle if desired
+    // but keep existing behavior for now for backward compatibility
     process.exit(1);
   }
 };

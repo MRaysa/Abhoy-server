@@ -30,6 +30,12 @@ class User {
     return await collection.findOne({ email });
   }
 
+  static async findByUid(uid) {
+    const db = getDB();
+    const collection = db.collection(this.collectionName);
+    return await collection.findOne({ uid });
+  }
+
   static async findAll(query = {}, options = {}) {
     const db = getDB();
     const collection = db.collection(this.collectionName);

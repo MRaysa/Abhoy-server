@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -52,7 +53,7 @@ const getUserById = async (req, res, next) => {
 // @access  Public
 const createUser = async (req, res, next) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone, role, address, photoURL, uid } = req.body;
 
     // Check if user exists
     const existingUser = await User.findByEmail(email);
@@ -63,18 +64,30 @@ const createUser = async (req, res, next) => {
       });
     }
 
+    // Hash the password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const user = await User.create({
+      uid,
       name,
       email,
-      password, // In production, hash the password before storing
+      password: hashedPassword,
       phone,
-      role: role || 'patient'
+      role: role || 'employee',
+      address,
+      photoURL,
+      isActive: true,
+      lastLogin: null
     });
+
+    // Remove password from response
+    const { password: _, ...userResponse } = user;
 
     res.status(201).json({
       success: true,
       message: 'User created successfully',
-      data: user
+      data: userResponse
     });
   } catch (error) {
     next(error);
