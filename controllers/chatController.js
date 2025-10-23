@@ -245,6 +245,10 @@ exports.sendMessage = async (req, res) => {
     // Get full lawyer data if available
     if (session.recommendedLawyer) {
       const lawyerData = await lawyers.findOne({ _id: new ObjectId(session.recommendedLawyer) });
+      // Ensure consultationFee has a value
+      if (lawyerData && (lawyerData.consultationFee === undefined || lawyerData.consultationFee === null)) {
+        lawyerData.consultationFee = 0;
+      }
       session.recommendedLawyer = lawyerData;
     }
 
@@ -282,6 +286,10 @@ exports.getChatHistory = async (req, res) => {
     for (let session of sessionList) {
       if (session.recommendedLawyer) {
         const lawyer = await lawyers.findOne({ _id: new ObjectId(session.recommendedLawyer) });
+        // Ensure consultationFee has a value
+        if (lawyer && (lawyer.consultationFee === undefined || lawyer.consultationFee === null)) {
+          lawyer.consultationFee = 0;
+        }
         session.recommendedLawyer = lawyer;
       }
     }
@@ -317,6 +325,10 @@ exports.getActiveSession = async (req, res) => {
 
     if (session && session.recommendedLawyer) {
       const lawyer = await lawyers.findOne({ _id: new ObjectId(session.recommendedLawyer) });
+      // Ensure consultationFee has a value
+      if (lawyer && (lawyer.consultationFee === undefined || lawyer.consultationFee === null)) {
+        lawyer.consultationFee = 0;
+      }
       session.recommendedLawyer = lawyer;
     }
 
