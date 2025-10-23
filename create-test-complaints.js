@@ -5,7 +5,10 @@
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const API_BASE = 'http://localhost:3000/api';
+// Use environment variable or default to local
+const API_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://abhoy-server.vercel.app/api'  // Production backend
+  : 'http://localhost:3000/api';            // Local backend
 
 const testComplaints = [
   {

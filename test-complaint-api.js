@@ -2,7 +2,10 @@
 // Run with: node test-complaint-api.js
 
 const testComplaintAPI = async () => {
-  const baseURL = 'http://localhost:3000/api';
+  // Use environment variable or default to local
+  const baseURL = process.env.NODE_ENV === 'production'
+    ? 'https://abhoy-server.vercel.app/api'  // Production backend
+    : 'http://localhost:3000/api';            // Local backend
   
   console.log('🧪 Testing Anonymous Complaint System API...\n');
   
