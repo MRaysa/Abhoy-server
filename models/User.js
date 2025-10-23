@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { getDB } = require('../config/database');
+const bcrypt = require('bcryptjs');
 
 class User {
   static collectionName = 'users';
@@ -8,10 +9,19 @@ class User {
     const db = getDB();
     const collection = db.collection(this.collectionName);
 
+    // Hash password if provided
+    if (userData.password) {
+      const salt = await bcrypt.genSalt(10);
+      userData.password = await bcrypt.hash(userData.password, salt);
+    }
+
     const user = {
       ...userData,
+      role: userData.role || 'employee', // Default role
+      isActive: userData.isActive !== undefined ? userData.isActive : true,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      lastLogin: new Date()
     };
 
     const result = await collection.insertOne(user);
@@ -27,7 +37,7 @@ class User {
   static async findByEmail(email) {
     const db = getDB();
     const collection = db.collection(this.collectionName);
-    return await collection.findOne({ email });
+    return await collection.findOne({ email: email.toLowerCase() });
   }
 
   static async findByUid(uid) {
@@ -54,6 +64,12 @@ class User {
     const db = getDB();
     const collection = db.collection(this.collectionName);
 
+    // Hash password if being updated
+    if (updateData.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(updateData.password, salt);
+    }
+
     const result = await collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
       {
@@ -68,6 +84,21 @@ class User {
     return result;
   }
 
+  static async updateLastLogin(id) {
+    const db = getDB();
+    const collection = db.collection(this.collectionName);
+
+    return await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          lastLogin: new Date(),
+          updatedAt: new Date()
+        }
+      }
+    );
+  }
+
   static async delete(id) {
     const db = getDB();
     const collection = db.collection(this.collectionName);
@@ -78,6 +109,17 @@ class User {
     const db = getDB();
     const collection = db.collection(this.collectionName);
     return await collection.countDocuments(query);
+  }
+
+  static async comparePassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  // Remove sensitive data before sending
+  static sanitize(user) {
+    if (!user) return null;
+    const { password, ...sanitizedUser } = user;
+    return sanitizedUser;
   }
 }
 
