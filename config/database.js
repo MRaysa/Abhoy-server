@@ -25,15 +25,17 @@ const connectDB = async () => {
         strict: true,
         deprecationErrors: true,
       },
-      // Ensure TLS is used for Atlas / production URIs
-      tls: true,
-      // For debugging behind corporate interceptors set MONGO_TLS_ALLOW_INVALID_CERTS=true
-      tlsAllowInvalidCertificates: allowInvalidCerts,
       serverSelectionTimeoutMS,
     };
 
-    if (allowInvalidCerts) {
-      console.warn('⚠️  MONGO_TLS_ALLOW_INVALID_CERTS is enabled — skipping TLS cert validation (debug only)');
+    // Only add TLS options for MongoDB Atlas (production)
+    if (uri.includes('mongodb+srv://') || uri.includes('mongodb.net')) {
+      clientOptions.tls = true;
+      clientOptions.tlsAllowInvalidCertificates = allowInvalidCerts;
+
+      if (allowInvalidCerts) {
+        console.warn('⚠️  MONGO_TLS_ALLOW_INVALID_CERTS is enabled — skipping TLS cert validation (debug only)');
+      }
     }
 
     client = new MongoClient(uri, clientOptions);
