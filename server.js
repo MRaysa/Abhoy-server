@@ -46,6 +46,36 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize database connection (for Vercel serverless)
+let dbInitialized = false;
+const initializeDB = async () => {
+  if (!dbInitialized) {
+    try {
+      await connectDB();
+      dbInitialized = true;
+      console.log('Database initialized for serverless function');
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+      throw error;
+    }
+  }
+};
+
+// Middleware to ensure DB is connected before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await initializeDB();
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Custom middleware
 app.use(logger);
 
@@ -53,13 +83,13 @@ app.use(logger);
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'MedAI Server is running',
+    message: 'SafeDesk Server is running',
     version: '1.0.0',
     endpoints: {
-      users: '/api/users',
-      doctors: '/api/doctors',
-      appointments: '/api/appointments',
-      medicalRecords: '/api/medical-records',
+      auth: '/api/auth',
+      chat: '/api/chat',
+      complaints: '/api/complaints',
+      lawyers: '/api/lawyers',
       health: '/api/health'
     }
   });
@@ -72,41 +102,30 @@ app.use('/api', routes);
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server and connect to database
-const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = async () => {
+    try {
+      await connectDB();
 
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log(`\n========================================`);
-      console.log(`🚀 Server Started Successfully!`);
-      console.log(`========================================`);
-      console.log(`📡 Server running on port: ${PORT}`);
-      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Local: http://localhost:${PORT}`);
-      console.log(`📋 API Docs: http://localhost:${PORT}/api/health`);
-      console.log(`========================================\n`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+      app.listen(PORT, () => {
+        console.log(`\n========================================`);
+        console.log(`🚀 Server Started Successfully!`);
+        console.log(`========================================`);
+        console.log(`📡 Server running on port: ${PORT}`);
+        console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`🔗 Local: http://localhost:${PORT}`);
+        console.log(`📋 API Docs: http://localhost:${PORT}/api/health`);
+        console.log(`========================================\n`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  process.exit(1);
-});
+  startServer();
+}
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Closing server gracefully...');
-  process.exit(0);
-});
-
-startServer();
-
+// Export for Vercel serverless
 module.exports = app;
