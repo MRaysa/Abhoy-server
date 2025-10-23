@@ -9,7 +9,7 @@ exports.startChatSession = async (req, res) => {
   try {
     const db = getDB();
     const sessions = db.collection('chat_sessions');
-    const userId = req.user.uid; // From auth middleware
+    const userId = req.user._id; // From auth middleware - using MongoDB _id
 
     // Check if user has an active session
     let session = await sessions.findOne({
@@ -60,7 +60,7 @@ exports.sendMessage = async (req, res) => {
     const sessions = db.collection('chat_sessions');
     const lawyers = db.collection('lawyers');
     
-    const userId = req.user.uid;
+    const userId = req.user._id;
     const { message, sessionId } = req.body;
 
     if (!message || !message.trim()) {
@@ -275,7 +275,7 @@ exports.getChatHistory = async (req, res) => {
     const db = getDB();
     const sessions = db.collection('chat_sessions');
     const lawyers = db.collection('lawyers');
-    const userId = req.user.uid;
+    const userId = req.user._id;
 
     const sessionList = await sessions.find({ userId })
       .sort({ createdAt: -1 })
@@ -316,7 +316,7 @@ exports.getActiveSession = async (req, res) => {
     const db = getDB();
     const sessions = db.collection('chat_sessions');
     const lawyers = db.collection('lawyers');
-    const userId = req.user.uid;
+    const userId = req.user._id;
 
     const session = await sessions.findOne({
       userId,
@@ -353,7 +353,7 @@ exports.endChatSession = async (req, res) => {
   try {
     const db = getDB();
     const sessions = db.collection('chat_sessions');
-    const userId = req.user.uid;
+    const userId = req.user._id;
     const { sessionId } = req.params;
 
     const session = await sessions.findOne({
