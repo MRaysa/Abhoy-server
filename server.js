@@ -11,38 +11,16 @@ const logger = require('./middleware/logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration - MUST be before other middleware
+// CORS configuration - simplified for Vercel
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://abhoy-rho.vercel.app',
-      'https://abhoy.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:3000'
-    ];
-
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Blocked CORS for origin:', origin);
-      callback(null, false);
-    }
-  },
+  origin: ['https://abhoy-rho.vercel.app', 'https://abhoy.vercel.app', 'http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  preflightContinue: false,
   optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
