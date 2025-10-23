@@ -9,12 +9,14 @@ const notFound = require('./middleware/notFound');
 const logger = require('./middleware/logger');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
   origin: [
     process.env.CLIENT_URL || 'http://localhost:5173',
+    'https://abhoy-rho.vercel.app',  // Production frontend URL
+    'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:3000'
   ],
@@ -56,14 +58,14 @@ const startServer = async () => {
     await connectDB();
 
     // Start Express server
-    app.listen(port, () => {
+    app.listen(PORT, () => {
       console.log(`\n========================================`);
       console.log(`🚀 Server Started Successfully!`);
       console.log(`========================================`);
-      console.log(`📡 Server running on port: ${port}`);
+      console.log(`📡 Server running on port: ${PORT}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Local: http://localhost:${port}`);
-      console.log(`📋 API Docs: http://localhost:${port}/api/health`);
+      console.log(`🔗 Local: http://localhost:${PORT}`);
+      console.log(`📋 API Docs: http://localhost:${PORT}/api/health`);
       console.log(`========================================\n`);
     });
   } catch (error) {
