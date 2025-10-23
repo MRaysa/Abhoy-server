@@ -115,8 +115,8 @@ exports.getAllComplaints = async (req, res) => {
       status,
       incidentType,
       priority,
-      isPublic: isPublic === 'true',
-      approvedForForum: approvedForForum === 'true',
+      isPublic: isPublic ? isPublic === 'true' : undefined,
+      approvedForForum: approvedForForum ? approvedForForum === 'true' : undefined,
       startDate,
       endDate
     };
